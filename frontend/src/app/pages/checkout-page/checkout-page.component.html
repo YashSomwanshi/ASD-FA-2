@@ -1,0 +1,277 @@
+<div class="checkout-page">
+
+  <!-- Progress Steps -->
+  <div class="checkout-header">
+    <div class="container">
+      <a routerLink="/" class="back-link">← Continue Shopping</a>
+      <div class="steps">
+        <div class="step" [class.active]="currentStep >= 1" [class.done]="currentStep > 1" (click)="goToStep(1)">
+          <div class="step-circle">
+            <span *ngIf="currentStep <= 1">1</span>
+            <span *ngIf="currentStep > 1">✓</span>
+          </div>
+          <span class="step-label">Address</span>
+        </div>
+        <div class="step-line" [class.active]="currentStep > 1"></div>
+        <div class="step" [class.active]="currentStep >= 2" [class.done]="currentStep > 2" (click)="goToStep(2)">
+          <div class="step-circle">
+            <span *ngIf="currentStep <= 2">2</span>
+            <span *ngIf="currentStep > 2">✓</span>
+          </div>
+          <span class="step-label">Payment</span>
+        </div>
+        <div class="step-line" [class.active]="currentStep > 2"></div>
+        <div class="step" [class.active]="currentStep >= 3">
+          <div class="step-circle">3</div>
+          <span class="step-label">Review</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="checkout-body container">
+
+    <!-- ── LEFT PANEL ── -->
+    <div class="checkout-left">
+
+      <!-- STEP 1: Delivery Address -->
+      <div class="step-panel" *ngIf="currentStep === 1">
+        <h2 class="panel-title">📦 Delivery Address</h2>
+
+        <div class="address-type-row">
+          <button class="type-btn" [class.active]="address.addressType === 'home'" (click)="address.addressType = 'home'" id="type-home">🏠 Home</button>
+          <button class="type-btn" [class.active]="address.addressType === 'work'" (click)="address.addressType = 'work'" id="type-work">🏢 Work</button>
+          <button class="type-btn" [class.active]="address.addressType === 'other'" (click)="address.addressType = 'other'" id="type-other">📍 Other</button>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fullName">Full Name <span class="required">*</span></label>
+            <input id="fullName" type="text" [(ngModel)]="address.fullName" placeholder="Enter your full name" />
+          </div>
+          <div class="form-group">
+            <label for="phone">Mobile Number <span class="required">*</span></label>
+            <div class="phone-input">
+              <span class="country-code">+91</span>
+              <input id="phone" type="tel" [(ngModel)]="address.phone" placeholder="10-digit mobile number" maxlength="10" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address <span class="required">*</span></label>
+          <input id="email" type="email" [(ngModel)]="address.email" placeholder="yourname@example.com" />
+        </div>
+
+        <div class="form-group">
+          <label for="address1">Address Line 1 <span class="required">*</span></label>
+          <input id="address1" type="text" [(ngModel)]="address.addressLine1" placeholder="Flat / House no., Building, Street" />
+        </div>
+
+        <div class="form-group">
+          <label for="address2">Address Line 2</label>
+          <input id="address2" type="text" [(ngModel)]="address.addressLine2" placeholder="Area, Colony (optional)" />
+        </div>
+
+        <div class="form-group">
+          <label for="landmark">Landmark</label>
+          <input id="landmark" type="text" [(ngModel)]="address.landmark" placeholder="Near school, temple, etc. (optional)" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">City <span class="required">*</span></label>
+            <input id="city" type="text" [(ngModel)]="address.city" placeholder="Enter city" />
+          </div>
+          <div class="form-group">
+            <label for="pincode">Pincode <span class="required">*</span></label>
+            <input id="pincode" type="text" [(ngModel)]="address.pincode" placeholder="6-digit pincode" maxlength="6" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="state">State <span class="required">*</span></label>
+          <select id="state" [(ngModel)]="address.state">
+            <option value="">Select State</option>
+            <option *ngFor="let s of indianStates" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+
+        <button class="btn-primary" id="btn-next-payment" (click)="nextStep()">
+          Continue to Payment →
+        </button>
+      </div>
+
+      <!-- STEP 2: Payment Method -->
+      <div class="step-panel" *ngIf="currentStep === 2">
+        <h2 class="panel-title">💳 Payment Method</h2>
+
+        <div class="payment-options">
+          <label class="payment-option" [class.selected]="paymentMethod === 'cod'" id="pay-cod">
+            <input type="radio" name="payment" value="cod" [(ngModel)]="paymentMethod" />
+            <div class="pay-icon">💵</div>
+            <div class="pay-info">
+              <strong>Cash on Delivery</strong>
+              <span>Pay when your order arrives</span>
+            </div>
+            <div class="pay-badge">Safe & Easy</div>
+          </label>
+
+          <label class="payment-option" [class.selected]="paymentMethod === 'upi'" id="pay-upi">
+            <input type="radio" name="payment" value="upi" [(ngModel)]="paymentMethod" />
+            <div class="pay-icon">📱</div>
+            <div class="pay-info">
+              <strong>UPI</strong>
+              <span>GPay, PhonePe, Paytm, BHIM</span>
+            </div>
+            <div class="pay-badge pay-badge--green">Instant</div>
+          </label>
+
+          <label class="payment-option" [class.selected]="paymentMethod === 'card'" id="pay-card">
+            <input type="radio" name="payment" value="card" [(ngModel)]="paymentMethod" />
+            <div class="pay-icon">💳</div>
+            <div class="pay-info">
+              <strong>Credit / Debit Card</strong>
+              <span>Visa, Mastercard, RuPay</span>
+            </div>
+          </label>
+
+          <label class="payment-option" [class.selected]="paymentMethod === 'netbanking'" id="pay-netbanking">
+            <input type="radio" name="payment" value="netbanking" [(ngModel)]="paymentMethod" />
+            <div class="pay-icon">🏦</div>
+            <div class="pay-info">
+              <strong>Net Banking</strong>
+              <span>All major Indian banks supported</span>
+            </div>
+          </label>
+
+          <label class="payment-option" [class.selected]="paymentMethod === 'emi'" id="pay-emi">
+            <input type="radio" name="payment" value="emi" [(ngModel)]="paymentMethod" />
+            <div class="pay-icon">📅</div>
+            <div class="pay-info">
+              <strong>EMI</strong>
+              <span>0% EMI on select banks up to 12 months</span>
+            </div>
+            <div class="pay-badge pay-badge--purple">0% Interest</div>
+          </label>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn-secondary" id="btn-back-address" (click)="prevStep()">← Back</button>
+          <button class="btn-primary" id="btn-next-review" (click)="nextStep()">Review Order →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Review & Place Order -->
+      <div class="step-panel" *ngIf="currentStep === 3">
+        <h2 class="panel-title">✅ Review Your Order</h2>
+
+        <!-- Address Summary -->
+        <div class="review-section">
+          <div class="review-header">
+            <span>📦 Delivery Address</span>
+            <button class="edit-btn" (click)="goToStep(1)">Edit</button>
+          </div>
+          <div class="review-card">
+            <strong>{{ address.fullName }}</strong> | +91 {{ address.phone }}
+            <p>{{ address.addressLine1 }}<span *ngIf="address.addressLine2">, {{ address.addressLine2 }}</span></p>
+            <p>{{ address.city }}, {{ address.state }} – {{ address.pincode }}</p>
+            <p *ngIf="address.landmark" class="landmark">Landmark: {{ address.landmark }}</p>
+            <span class="type-tag">{{ address.addressType | titlecase }}</span>
+          </div>
+        </div>
+
+        <!-- Payment Summary -->
+        <div class="review-section">
+          <div class="review-header">
+            <span>💳 Payment Method</span>
+            <button class="edit-btn" (click)="goToStep(2)">Edit</button>
+          </div>
+          <div class="review-card pay-review">
+            <span *ngIf="paymentMethod === 'cod'">💵 Cash on Delivery</span>
+            <span *ngIf="paymentMethod === 'upi'">📱 UPI (GPay / PhonePe / Paytm)</span>
+            <span *ngIf="paymentMethod === 'card'">💳 Credit / Debit Card</span>
+            <span *ngIf="paymentMethod === 'netbanking'">🏦 Net Banking</span>
+            <span *ngIf="paymentMethod === 'emi'">📅 EMI (0% Interest)</span>
+          </div>
+        </div>
+
+        <!-- Items Summary -->
+        <div class="review-section">
+          <div class="review-header"><span>🛒 Items ({{ cartItems.length }})</span></div>
+          <div class="review-items">
+            <div class="review-item" *ngFor="let item of cartItems">
+              <span class="item-emoji">{{ item.product.emoji }}</span>
+              <div class="item-info">
+                <span class="item-name">{{ item.product.name }}</span>
+                <span class="item-qty">Qty: {{ item.quantity }}</span>
+              </div>
+              <span class="item-price">{{ formatPrice(item.product.price * item.quantity) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn-secondary" id="btn-back-payment" (click)="prevStep()">← Back</button>
+          <button class="btn-place-order" id="btn-place-order" (click)="placeOrder()" [disabled]="isPlacingOrder">
+            <span *ngIf="!isPlacingOrder">🎉 Place Order · {{ formatPrice(grandTotal) }}</span>
+            <span *ngIf="isPlacingOrder" class="spinner-text">⏳ Placing your order...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT PANEL: Order Summary ── -->
+    <div class="checkout-right">
+      <div class="order-summary-card">
+        <h3 class="summary-title">🛒 Order Summary</h3>
+
+        <div class="summary-items">
+          <div class="summary-item" *ngFor="let item of cartItems">
+            <div class="s-item-left">
+              <span class="s-emoji">{{ item.product.emoji }}</span>
+              <div class="s-item-info">
+                <span class="s-name">{{ item.product.name }}</span>
+                <span class="s-qty">x{{ item.quantity }}</span>
+              </div>
+            </div>
+            <span class="s-price">{{ formatPrice(item.product.price * item.quantity) }}</span>
+          </div>
+        </div>
+
+        <div class="summary-divider"></div>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>{{ formatPrice(subtotal) }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery</span>
+          <span [class.free]="deliveryFee === 0">{{ deliveryFee === 0 ? 'FREE' : formatPrice(deliveryFee) }}</span>
+        </div>
+        <div class="summary-row discount-row">
+          <span>Discount (5%)</span>
+          <span>– {{ formatPrice(discount) }}</span>
+        </div>
+
+        <div class="summary-divider"></div>
+
+        <div class="summary-total">
+          <span>Total Payable</span>
+          <span class="total-amount">{{ formatPrice(grandTotal) }}</span>
+        </div>
+
+        <div class="savings-banner" *ngIf="discount > 0">
+          🎉 You're saving <strong>{{ formatPrice(discount) }}</strong> on this order!
+        </div>
+
+        <div class="trust-badges">
+          <div class="trust-badge">🔒 100% Secure Payment</div>
+          <div class="trust-badge">↩️ Easy 10-Day Returns</div>
+          <div class="trust-badge">✅ Genuine Products</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

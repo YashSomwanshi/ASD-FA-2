@@ -1,0 +1,136 @@
+<div class="confirmation-page" *ngIf="order">
+
+  <!-- Success Hero -->
+  <div class="success-hero">
+    <div class="success-icon">✅</div>
+    <h1 class="success-title">Order Placed Successfully!</h1>
+    <p class="success-sub">Thank you, <strong>{{ order.address.fullName }}</strong>! Your order has been confirmed.</p>
+    <div class="order-id-badge">Order ID: <strong>{{ order.orderId }}</strong></div>
+  </div>
+
+  <div class="confirmation-body container">
+
+    <!-- Left Column -->
+    <div class="conf-left">
+
+      <!-- Delivery Info -->
+      <div class="conf-card">
+        <div class="conf-card-title">📦 Delivery Details</div>
+        <div class="delivery-track">
+          <div class="track-step done">
+            <div class="track-dot">✓</div>
+            <div class="track-info">
+              <strong>Order Confirmed</strong>
+              <span>Just now</span>
+            </div>
+          </div>
+          <div class="track-line"></div>
+          <div class="track-step">
+            <div class="track-dot">📦</div>
+            <div class="track-info">
+              <strong>Packed & Shipped</strong>
+              <span>Within 24 hours</span>
+            </div>
+          </div>
+          <div class="track-line"></div>
+          <div class="track-step">
+            <div class="track-dot">🚚</div>
+            <div class="track-info">
+              <strong>Out for Delivery</strong>
+              <span>Estimated by {{ estimatedDate }}</span>
+            </div>
+          </div>
+          <div class="track-line"></div>
+          <div class="track-step">
+            <div class="track-dot">🏠</div>
+            <div class="track-info">
+              <strong>Delivered</strong>
+              <span>To your doorstep</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div class="conf-card">
+        <div class="conf-card-title">📍 Shipping Address</div>
+        <div class="address-block">
+          <p><strong>{{ order.address.fullName }}</strong></p>
+          <p>{{ order.address.addressLine1 }}<span *ngIf="order.address.addressLine2">, {{ order.address.addressLine2 }}</span></p>
+          <p *ngIf="order.address.landmark">Near {{ order.address.landmark }}</p>
+          <p>{{ order.address.city }}, {{ order.address.state }} – {{ order.address.pincode }}</p>
+          <p>📞 +91 {{ order.address.phone }}</p>
+          <p>✉️ {{ order.address.email }}</p>
+        </div>
+      </div>
+
+      <!-- Items Ordered -->
+      <div class="conf-card">
+        <div class="conf-card-title">🛍️ Items Ordered</div>
+        <div class="ordered-items">
+          <div class="ordered-item" *ngFor="let item of order.items">
+            <span class="o-emoji">{{ item.emoji }}</span>
+            <div class="o-info">
+              <span class="o-name">{{ item.name }}</span>
+              <span class="o-qty">Qty: {{ item.quantity }}</span>
+            </div>
+            <span class="o-price">{{ formatPrice(item.price) }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Bill Summary -->
+    <div class="conf-right">
+      <div class="conf-card bill-card">
+        <div class="conf-card-title">🧾 Bill Summary</div>
+
+        <div class="bill-row">
+          <span>Subtotal</span>
+          <span>{{ formatPrice(order.subtotal) }}</span>
+        </div>
+        <div class="bill-row">
+          <span>Delivery</span>
+          <span [class.free-text]="order.deliveryFee === 0">
+            {{ order.deliveryFee === 0 ? 'FREE' : formatPrice(order.deliveryFee) }}
+          </span>
+        </div>
+        <div class="bill-row green-row">
+          <span>Discount</span>
+          <span>– {{ formatPrice(order.discount) }}</span>
+        </div>
+        <div class="bill-divider"></div>
+        <div class="bill-total">
+          <span>Total Paid</span>
+          <span class="bill-amount">{{ formatPrice(order.total) }}</span>
+        </div>
+
+        <div class="pay-method-row">
+          <span class="pay-label">Payment Method</span>
+          <span class="pay-value">{{ paymentLabel(order.paymentMethod) }}</span>
+        </div>
+      </div>
+
+      <!-- CTA Buttons -->
+      <div class="cta-buttons">
+        <a routerLink="/" class="btn-shop-more" id="btn-continue-shopping">
+          🛒 Continue Shopping
+        </a>
+        <button class="btn-track" id="btn-track-order" (click)="$event.preventDefault()">
+          📦 Track Order
+        </button>
+      </div>
+
+      <!-- Help -->
+      <div class="help-card">
+        <div class="help-title">Need Help?</div>
+        <p>Our support team is available 24/7</p>
+        <div class="help-links">
+          <span>📞 1800-xxx-xxxx</span>
+          <span>✉️ support&#64;shopeasy.in</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

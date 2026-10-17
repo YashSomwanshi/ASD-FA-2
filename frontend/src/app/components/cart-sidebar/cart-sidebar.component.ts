@@ -1,5 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { CartService } from '../../services/cart.service';
 import { ToastService } from '../../services/toast.service';
@@ -8,7 +10,7 @@ import { CartItem } from '../../models/cart-item.model';
 @Component({
   selector: 'app-cart-sidebar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './cart-sidebar.component.html',
   styleUrl: './cart-sidebar.component.css'
 })
@@ -19,7 +21,8 @@ export class CartSidebarComponent implements OnInit, OnDestroy {
 
   constructor(
     public cartService: CartService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -60,9 +63,8 @@ export class CartSidebarComponent implements OnInit, OnDestroy {
   }
 
   checkout(): void {
-    this.toastService.show('🎉 Order placed successfully!', 'success');
-    this.cartService.clearCart();
     this.close();
+    this.router.navigate(['/checkout']);
   }
 
   get totalItems(): number { return this.cartService.getTotalItems(); }
