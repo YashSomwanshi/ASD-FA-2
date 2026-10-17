@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CartSidebarComponent } from './cart-sidebar.component';
 import { CartService } from '../../services/cart.service';
 import { ToastService } from '../../services/toast.service';
+import { RouterTestingModule } from '@angular/router/testing';
 import { BehaviorSubject } from 'rxjs';
 import { CartItem } from '../../models/cart-item.model';
 import { Product } from '../../models/product.model';
@@ -31,7 +32,7 @@ describe('CartSidebarComponent', () => {
     mockToastService = jasmine.createSpyObj('ToastService', ['show']);
 
     await TestBed.configureTestingModule({
-      imports: [CartSidebarComponent],
+      imports: [CartSidebarComponent, RouterTestingModule],
       providers: [
         { provide: CartService, useValue: mockCartService },
         { provide: ToastService, useValue: mockToastService }
@@ -98,10 +99,9 @@ describe('CartSidebarComponent', () => {
     expect(mockToastService.show).toHaveBeenCalled();
   });
 
-  it('should call clearCart and close on checkout()', () => {
+  it('should close sidebar on checkout()', () => {
     component.open();
     component.checkout();
-    expect(mockCartService.clearCart).toHaveBeenCalled();
     expect(component.isOpen).toBeFalse();
   });
 

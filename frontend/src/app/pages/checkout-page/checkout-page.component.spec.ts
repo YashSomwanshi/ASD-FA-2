@@ -20,11 +20,12 @@ describe('CheckoutPageComponent', () => {
   let mockToastService: jasmine.SpyObj<ToastService>;
 
   beforeEach(async () => {
-    mockCartService = jasmine.createSpyObj('CartService', ['getTotalItems', 'getTotalPrice', 'clearCart'], {
+    mockCartService = jasmine.createSpyObj('CartService', ['getTotalItems', 'getTotalPrice', 'clearCart', 'getCartItems'], {
       cartItems$: new BehaviorSubject<CartItem[]>(mockCartItems)
     });
     mockCartService.getTotalItems.and.returnValue(1);
     mockCartService.getTotalPrice.and.returnValue(10000);
+    mockCartService.getCartItems.and.returnValue(mockCartItems);
 
     mockCheckoutService = jasmine.createSpyObj('CheckoutService', ['setOrder', 'generateOrderId']);
     mockCheckoutService.generateOrderId.and.returnValue('SE123456789001');
