@@ -1,0 +1,283 @@
+# ============================================================
+# Main CI/CD Pipeline — ShopEasy Angular Frontend
+# Runs when code is pushed or merged into the main branch.
+# Runs quality gates, builds the production bundle, stores it
+# as an artifact, and has a clearly documented deployment stage.
+# ============================================================
+
+name: Main CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/main.yml'
+
+# Minimal permissions at the workflow level.
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  # ──────────────────────────────────────────────────────────
+  # JOB 1 — Install & Cache Dependencies
+  # ──────────────────────────────────────────────────────────
+  install:
+    name: Install Dependencies
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies (reproducible via npm ci)
+        run: npm ci
+
+      - name: Cache node_modules
+        uses: actions/cache/save@v4
+        with:
+          path: frontend/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+  # ──────────────────────────────────────────────────────────
+  # JOB 2 — Unit Tests (Karma + Jasmine, headless Chrome)
+  # ──────────────────────────────────────────────────────────
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: install
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Run unit tests (headless Chrome)
+        run: npm test -- --watch=false --browsers=ChromeHeadless --no-progress
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-coverage-report
+          path: frontend/coverage/
+          retention-days: 30
+
+  # ──────────────────────────────────────────────────────────
+  # JOB 3 — Dependency Security Audit
+  # ──────────────────────────────────────────────────────────
+  security-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    needs: install
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Run npm audit (production dependencies, fail on high+)
+        run: npm audit --audit-level=high --omit=dev
+
+  # ──────────────────────────────────────────────────────────
+  # JOB 4 — Production Build & Artifact Upload
+  # ──────────────────────────────────────────────────────────
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    needs:
+      - test
+      - security-audit
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Build Angular app (production)
+        run: npm run build
+
+      - name: Verify dist directory was created
+        run: |
+          if [ ! -d "dist/frontend" ]; then
+            echo "ERROR: Production build output directory 'dist/frontend' not found."
+            exit 1
+          fi
+          echo "Build artifact contents:"
+          ls -lh dist/frontend/browser/ || ls -lh dist/frontend/
+
+      # Attach the production bundle as a GitHub Actions artifact.
+      # This artifact can be downloaded and deployed by the deploy job below.
+      - name: Upload production build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shopeasy-production-build-${{ github.sha }}
+          path: frontend/dist/frontend/
+          retention-days: 30
+
+  # ──────────────────────────────────────────────────────────
+  # JOB 5 — CodeQL Static Analysis
+  # ──────────────────────────────────────────────────────────
+  codeql:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:javascript-typescript'
+
+  # ──────────────────────────────────────────────────────────
+  # JOB 6 — Deploy (PLACEHOLDER)
+  #
+  # No deployment provider is currently configured in this project.
+  # To enable deployment, choose a provider and add the required
+  # GitHub Secrets listed below, then replace this job with the
+  # appropriate deployment steps.
+  #
+  # ── Required GitHub Secrets (set in repo Settings → Secrets) ──
+  #
+  # For Firebase Hosting:
+  #   FIREBASE_SERVICE_ACCOUNT  — Firebase service account JSON key
+  #   FIREBASE_PROJECT_ID       — Firebase project ID
+  #
+  # For AWS S3 + CloudFront:
+  #   AWS_ACCESS_KEY_ID         — IAM access key (deploy-only policy)
+  #   AWS_SECRET_ACCESS_KEY     — IAM secret key
+  #   AWS_S3_BUCKET             — Target S3 bucket name
+  #   AWS_CLOUDFRONT_DIST_ID    — CloudFront distribution ID (for cache invalidation)
+  #   AWS_REGION                — AWS region (e.g. ap-south-1)
+  #
+  # For Vercel:
+  #   VERCEL_TOKEN              — Vercel API token
+  #   VERCEL_ORG_ID             — Vercel organisation ID
+  #   VERCEL_PROJECT_ID         — Vercel project ID
+  #
+  # For GitHub Pages:
+  #   No secrets required — uses GITHUB_TOKEN automatically.
+  # ──────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy (Placeholder — configure a provider)
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+    # Remove the 'if: false' line once a real deployment provider is configured.
+    if: false
+
+    steps:
+      - name: Download production build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: shopeasy-production-build-${{ github.sha }}
+          path: ./dist
+
+      # ── OPTION A — Firebase Hosting ─────────────────────────
+      # Uncomment and configure the steps below for Firebase Hosting.
+      #
+      # - name: Deploy to Firebase Hosting
+      #   uses: FirebaseExtended/action-hosting-deploy@v0
+      #   with:
+      #     repoToken: ${{ secrets.GITHUB_TOKEN }}
+      #     firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      #     projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+      #     channelId: live
+
+      # ── OPTION B — AWS S3 + CloudFront ──────────────────────
+      # Uncomment and configure the steps below for AWS.
+      #
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
+      #
+      # - name: Sync build to S3
+      #   run: aws s3 sync ./dist s3://${{ secrets.AWS_S3_BUCKET }} --delete
+      #
+      # - name: Invalidate CloudFront cache
+      #   run: |
+      #     aws cloudfront create-invalidation \
+      #       --distribution-id ${{ secrets.AWS_CLOUDFRONT_DIST_ID }} \
+      #       --paths "/*"
+
+      # ── OPTION C — GitHub Pages ──────────────────────────────
+      # If using GitHub Pages, replace this entire job with:
+      # https://github.com/actions/deploy-pages
+      # and set 'base-href' in 'ng build' accordingly.
+
+      - name: Deployment placeholder (not yet configured)
+        run: |
+          echo "Deployment is not yet configured."
+          echo "See devops/.github/workflows/main.yml and docs/ci-cd.md for instructions."
+          echo "Downloaded artifact contents:"
+          ls -lh ./dist/

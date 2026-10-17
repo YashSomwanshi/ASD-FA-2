@@ -1,0 +1,211 @@
+# ============================================================
+# Pull Request Pipeline — ShopEasy Angular Frontend
+# Runs on every PR that targets the main branch.
+# All major quality gates must pass before merging.
+# ============================================================
+
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/pr.yml'
+
+# Minimal permissions — read-only for most jobs; write only where required.
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+jobs:
+  # ──────────────────────────────────────────────────────────
+  # JOB 1 — Install & Cache Dependencies
+  # ──────────────────────────────────────────────────────────
+  install:
+    name: Install Dependencies
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies (reproducible via npm ci)
+        run: npm ci
+
+      # Cache node_modules for downstream jobs so they do not re-download.
+      - name: Cache node_modules
+        uses: actions/cache/save@v4
+        with:
+          path: frontend/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+  # ──────────────────────────────────────────────────────────
+  # JOB 2 — Unit Tests (Karma + Jasmine, headless Chrome)
+  # ──────────────────────────────────────────────────────────
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: install
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      # karma-chrome-launcher requires Chrome. GitHub-hosted ubuntu-latest
+      # ships Chromium; ChromeHeadless runs without a display server.
+      - name: Run unit tests (headless Chrome)
+        run: npm test -- --watch=false --browsers=ChromeHeadless --no-progress
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-coverage-report
+          path: frontend/coverage/
+          retention-days: 14
+
+  # ──────────────────────────────────────────────────────────
+  # JOB 3 — Production Build
+  # ──────────────────────────────────────────────────────────
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    needs: install
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Build Angular app (production)
+        run: npm run build
+
+      - name: Verify dist directory was created
+        run: |
+          if [ ! -d "dist/frontend" ]; then
+            echo "ERROR: Production build output directory 'dist/frontend' not found."
+            exit 1
+          fi
+          echo "Build output files:"
+          ls -lh dist/frontend/browser/ || ls -lh dist/frontend/
+
+  # ──────────────────────────────────────────────────────────
+  # JOB 4 — Dependency Security Audit
+  # ──────────────────────────────────────────────────────────
+  security-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    needs: install
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      # Fail on critical or high vulnerabilities.
+      # --omit=dev keeps audit focused on production dependencies.
+      - name: Run npm audit (production dependencies, fail on high+)
+        run: npm audit --audit-level=high --omit=dev
+
+  # ──────────────────────────────────────────────────────────
+  # JOB 5 — GitHub Dependency Review
+  # Checks for newly introduced vulnerable dependencies in the PR diff.
+  # ──────────────────────────────────────────────────────────
+  dependency-review:
+    name: GitHub Dependency Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run GitHub Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always
+
+  # ──────────────────────────────────────────────────────────
+  # JOB 6 — CodeQL Static Analysis (JavaScript/TypeScript)
+  # ──────────────────────────────────────────────────────────
+  codeql:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:javascript-typescript'
