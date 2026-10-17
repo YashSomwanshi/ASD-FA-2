@@ -1,0 +1,53 @@
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="footer-logo">
+          <span class="logo-shop">Shop</span><span class="logo-easy">Easy</span>
+        </div>
+        <p class="footer-tagline">Your one-stop destination for the best deals online.</p>
+        <div class="social-links">
+          <a href="#" class="social-link" id="footer-facebook">📘</a>
+          <a href="#" class="social-link" id="footer-twitter">🐦</a>
+          <a href="#" class="social-link" id="footer-instagram">📷</a>
+          <a href="#" class="social-link" id="footer-youtube">▶️</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>About</h4>
+        <ul>
+          <li *ngFor="let link of footerLinks.about"><a href="#">{{ link }}</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Help</h4>
+        <ul>
+          <li *ngFor="let link of footerLinks.help"><a href="#">{{ link }}</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Policy</h4>
+        <ul>
+          <li *ngFor="let link of footerLinks.policy"><a href="#">{{ link }}</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Sell</h4>
+        <ul>
+          <li *ngFor="let link of footerLinks.sell"><a href="#">{{ link }}</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="payment-icons">
+        <span>💳</span><span>🏦</span><span>📱</span><span>💰</span>
+      </div>
+      <p>© {{ currentYear }} ShopEasy. All rights reserved.</p>
+    </div>
+  </div>
+</footer>

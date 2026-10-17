@@ -1,0 +1,10 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.main-content {
+  min-height: calc(100vh - 120px);
+  padding-top: 120px; /* offset for sticky navbar */
+}

@@ -1,0 +1,36 @@
+<div class="hero-wrapper">
+  <div
+    class="hero-slide"
+    *ngFor="let slide of slides; let i = index"
+    [class.active]="i === currentSlide"
+    [style.background]="slide.gradient"
+  >
+    <div class="hero-content">
+      <div class="hero-text">
+        <span class="slide-tag">{{ slide.tag }}</span>
+        <h1>{{ slide.title }}</h1>
+        <p>{{ slide.subtitle }}</p>
+        <a routerLink="/" class="hero-cta" [style.background]="slide.accent">{{ slide.cta }}</a>
+      </div>
+      <div class="hero-visual">
+        <div class="product-bubble" [style.border-color]="slide.accent + '40'">
+          <span class="product-emoji">{{ slide.emoji }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <button class="slider-arrow left" (click)="prev()" aria-label="Previous slide">&#8249;</button>
+  <button class="slider-arrow right" (click)="next()" aria-label="Next slide">&#8250;</button>
+
+  <div class="slider-dots">
+    <button
+      *ngFor="let slide of slides; let i = index"
+      class="dot"
+      [class.active]="i === currentSlide"
+      (click)="goTo(i)"
+      [attr.aria-label]="'Go to slide ' + (i + 1)"
+    ></button>
+  </div>
+</div>

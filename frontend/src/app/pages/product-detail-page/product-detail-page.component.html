@@ -1,0 +1,88 @@
+<section class="detail-page">
+  <div class="container">
+    <a routerLink="/" class="back-link">← Back to Products</a>
+
+    <ng-container *ngIf="product; else notFound">
+      <div class="detail-grid">
+        <!-- Left: Product Visual -->
+        <div class="detail-image-panel">
+          <div class="main-image">
+            <span class="detail-emoji">{{ product.emoji }}</span>
+          </div>
+          <span class="badge" *ngIf="product.badge">{{ product.badge }}</span>
+        </div>
+
+        <!-- Right: Product Info -->
+        <div class="detail-info">
+          <p class="detail-category">{{ product.category | titlecase }}</p>
+          <h1 class="detail-name">{{ product.name }}</h1>
+
+          <div class="detail-rating">
+            <span class="stars">
+              <span *ngFor="let s of getStars(product.rating)">★</span>
+            </span>
+            <span class="rating-val">{{ product.rating }}</span>
+            <span class="review-count">{{ product.reviewCount.toLocaleString() }} reviews</span>
+          </div>
+
+          <div class="detail-price-box">
+            <span class="detail-price">{{ formatPrice(product.price) }}</span>
+            <span class="detail-original">{{ formatPrice(product.originalPrice) }}</span>
+            <span class="detail-discount">{{ product.discount }}% OFF</span>
+          </div>
+
+          <p class="detail-description">{{ product.description }}</p>
+
+          <div class="stock-status" [class.in-stock]="product.inStock" [class.out-of-stock]="!product.inStock">
+            {{ product.inStock ? '✅ In Stock' : '❌ Out of Stock' }}
+          </div>
+
+          <!-- Quantity -->
+          <div class="qty-row" *ngIf="product.inStock">
+            <span class="qty-label">Quantity:</span>
+            <div class="qty-controls">
+              <button class="qty-btn" (click)="decreaseQty()" id="qty-decrease">−</button>
+              <span class="qty-num">{{ quantity }}</span>
+              <button class="qty-btn" (click)="increaseQty()" id="qty-increase">+</button>
+            </div>
+          </div>
+
+          <div class="detail-actions">
+            <button
+              class="btn-add-cart"
+              (click)="addToCart()"
+              [disabled]="!product.inStock"
+              id="detail-add-cart"
+            >
+              🛒 Add to Cart
+            </button>
+            <button class="btn-wishlist" id="detail-wishlist">❤️ Wishlist</button>
+          </div>
+
+          <div class="detail-meta">
+            <div class="meta-item">
+              <span class="meta-icon">🚚</span>
+              <div><strong>Free Delivery</strong><br><small>On orders above ₹499</small></div>
+            </div>
+            <div class="meta-item">
+              <span class="meta-icon">🔄</span>
+              <div><strong>10-Day Returns</strong><br><small>Easy hassle-free returns</small></div>
+            </div>
+            <div class="meta-item">
+              <span class="meta-icon">✅</span>
+              <div><strong>100% Authentic</strong><br><small>Certified genuine products</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #notFound>
+      <div class="not-found">
+        <span>😕</span>
+        <h2>Product not found</h2>
+        <a routerLink="/" class="btn-add-cart">Back to Home</a>
+      </div>
+    </ng-template>
+  </div>
+</section>

@@ -1,0 +1,51 @@
+<div class="product-card" [class.out-of-stock]="!product.inStock">
+  <a [routerLink]="['/product', product.id]" class="card-link">
+    <!-- Badge -->
+    <span class="badge" *ngIf="product.badge">{{ product.badge }}</span>
+    <span class="out-badge" *ngIf="!product.inStock">Out of Stock</span>
+
+    <!-- Wishlist -->
+    <button class="wishlist-btn" (click)="toggleWishlist($event)" aria-label="Add to wishlist">♡</button>
+
+    <!-- Product Image / Emoji -->
+    <div class="product-image">
+      <span class="product-emoji">{{ product.emoji }}</span>
+    </div>
+
+    <!-- Info -->
+    <div class="product-info">
+      <p class="product-category">{{ product.category }}</p>
+      <h3 class="product-name">{{ product.name }}</h3>
+
+      <!-- Rating -->
+      <div class="rating-row">
+        <div class="stars">
+          <span *ngFor="let s of getStars(product.rating)" class="star">★</span>
+        </div>
+        <span class="rating-value">{{ product.rating }}</span>
+        <span class="review-count">({{ product.reviewCount.toLocaleString() }})</span>
+      </div>
+
+      <!-- Pricing -->
+      <div class="price-row">
+        <span class="price">{{ formatPrice(product.price) }}</span>
+        <span class="original-price">{{ formatPrice(product.originalPrice) }}</span>
+        <span class="discount">{{ product.discount }}% off</span>
+      </div>
+    </div>
+  </a>
+
+  <!-- Add to Cart -->
+  <button
+    class="add-to-cart-btn"
+    (click)="addToCart($event)"
+    [disabled]="!product.inStock"
+    [id]="'add-cart-' + product.id"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+    </svg>
+    {{ product.inStock ? 'Add to Cart' : 'Unavailable' }}
+  </button>
+</div>

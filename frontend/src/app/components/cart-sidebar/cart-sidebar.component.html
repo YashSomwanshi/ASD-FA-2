@@ -1,0 +1,48 @@
+<div class="cart-overlay" [class.open]="isOpen" (click)="close()"></div>
+
+<aside class="cart-sidebar" [class.open]="isOpen" id="cart-sidebar">
+  <div class="cart-header">
+    <h3>
+      🛒 My Cart
+      <span>{{ totalItems }} item{{ totalItems !== 1 ? 's' : '' }}</span>
+    </h3>
+    <button class="cart-close" (click)="close()" id="cart-close-btn" aria-label="Close cart">✕</button>
+  </div>
+
+  <div class="cart-items">
+    <ng-container *ngIf="cartItems.length === 0; else itemsList">
+      <div class="cart-empty">
+        <span>🛒</span>
+        <p>Your cart is empty</p>
+        <small>Add items to get started!</small>
+      </div>
+    </ng-container>
+
+    <ng-template #itemsList>
+      <div class="cart-item" *ngFor="let item of cartItems" [id]="'cart-item-' + item.product.id">
+        <div class="cart-item-emoji">{{ item.product.emoji }}</div>
+        <div class="cart-item-info">
+          <h4>{{ item.product.name }}</h4>
+          <div class="cart-item-price">{{ formatPrice(item.product.price) }}</div>
+          <div class="cart-qty-controls">
+            <button class="qty-btn" (click)="decrease(item.product.id, item.quantity)" aria-label="Decrease quantity">−</button>
+            <span class="qty-value">{{ item.quantity }}</span>
+            <button class="qty-btn" (click)="increase(item.product.id, item.quantity)" aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+        <button class="remove-btn" (click)="remove(item.product.id)" [attr.aria-label]="'Remove ' + item.product.name">🗑</button>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="cart-footer" *ngIf="cartItems.length > 0">
+    <div class="cart-total">
+      <span>Total ({{ totalItems }} items):</span>
+      <strong>{{ formatPrice(totalPrice) }}</strong>
+    </div>
+    <button class="clear-btn" (click)="clearCart()" id="clear-cart-btn">Clear Cart</button>
+    <button class="checkout-btn" (click)="checkout()" id="checkout-btn">
+      Proceed to Checkout →
+    </button>
+  </div>
+</aside>

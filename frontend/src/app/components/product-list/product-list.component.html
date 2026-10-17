@@ -1,0 +1,74 @@
+<section class="products-section">
+  <div class="container">
+    <!-- Deal Section -->
+    <div class="deals-wrapper" *ngIf="dealProducts.length > 0">
+      <div class="section-header">
+        <h2 class="section-title">🔥 Deals of the Day</h2>
+        <span class="deal-tag">Min 30% Off</span>
+      </div>
+      <div class="product-grid">
+        <app-product-card *ngFor="let p of dealProducts" [product]="p"></app-product-card>
+      </div>
+    </div>
+
+    <!-- Category Filter + Search -->
+    <div class="filter-bar">
+      <div class="cat-filters">
+        <button
+          *ngFor="let cat of categories"
+          class="cat-pill"
+          [class.active]="activeCategory === cat.id"
+          (click)="setCategory(cat.id)"
+          [id]="'filter-' + cat.id"
+        >
+          {{ cat.emoji }} {{ cat.label }}
+        </button>
+      </div>
+
+      <div class="filter-controls">
+        <div class="search-mini">
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (input)="onSearch()"
+            placeholder="Search products…"
+            id="product-search"
+          />
+        </div>
+        <select [(ngModel)]="sortBy" (ngModelChange)="onSortChange()" class="sort-select" id="sort-select">
+          <option value="default">Featured</option>
+          <option value="price-asc">Price: Low → High</option>
+          <option value="price-desc">Price: High → Low</option>
+          <option value="rating">Top Rated</option>
+          <option value="discount">Best Discount</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Section Title -->
+    <div class="section-header">
+      <h2 class="section-title">
+        {{ activeCategory === 'all' ? '🛍️ All Products' : '📦 ' + activeCategory + ' Products' }}
+      </h2>
+      <span class="product-count">{{ filteredProducts.length }} products</span>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="product-grid" *ngIf="filteredProducts.length > 0; else noProducts">
+      <app-product-card
+        *ngFor="let p of filteredProducts"
+        [product]="p"
+        [id]="'product-' + p.id"
+      ></app-product-card>
+    </div>
+
+    <ng-template #noProducts>
+      <div class="no-products">
+        <span>🔍</span>
+        <h3>No products found</h3>
+        <p>Try adjusting your search or filter</p>
+        <button (click)="searchQuery=''; setCategory('all')" class="reset-btn">Reset Filters</button>
+      </div>
+    </ng-template>
+  </div>
+</section>
