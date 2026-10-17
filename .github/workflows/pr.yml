@@ -181,10 +181,19 @@ jobs:
   # ──────────────────────────────────────────────────────────
   # JOB 5 — GitHub Dependency Review
   # Checks for newly introduced vulnerable dependencies in the PR diff.
+  #
+  # NOTE: This job requires "Dependency graph" to be enabled in
+  #       GitHub → Settings → Security & analysis → Dependency graph.
+  #       On private repos it requires GitHub Advanced Security or a
+  #       paid plan.  'continue-on-error: true' prevents it from
+  #       blocking the pipeline when the feature is unavailable.
+  #       Once the Dependency graph is enabled, set
+  #       'continue-on-error: false' to enforce this gate.
   # ──────────────────────────────────────────────────────────
   dependency-review:
     name: GitHub Dependency Review
     runs-on: ubuntu-latest
+    continue-on-error: true   # Remove when Dependency graph is enabled
     permissions:
       contents: read
       pull-requests: write
